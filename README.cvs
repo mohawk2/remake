@@ -3,12 +3,10 @@
 Obtaining CVS Code
 ------------------
 
-This seems redundant, since if you're reading this you most likely have
-already performed this step; however, for completeness, you can obtain
-the GNU make source code via anonymous CVS from the FSF's Savannah
-project <http://savannah.gnu.org/projects/make/>:
+You can obtain the GNU make source code via anonymous CVS from
+Sourceforge 
 
-  $ cvs -d:pserver:anoncvs@subversions.gnu.org:/cvsroot/make co make
+  $ cvs -d:pserver:anoncvs@bashdb.sourceforge.net:/cvsroot/bashdb co remake
 
 You might want to use the "-z3" option to get compression, and you most
 certainly will want the -P option to avoid unneeded directories
@@ -23,61 +21,27 @@ There is no password; just hit the ENTER key if you are asked for one.
 Building From CVS
 -----------------
 
-To build GNU make from CVS, you will need Autoconf 2.53 (or better),
-Automake 1.6.3 (or better), and Gettext 0.11.5 (or better), and any
-tools that those utilities require (GNU m4, Perl, etc.).  You will also
-need a copy of wget.
+To build GNU make from CVS, you will need Autoconf, Automake, and
+Gettext, and any tools that those utilities require (GNU m4, Perl,
+etc.).  See the configure.in file to find the minimum versions of each
+of these tools.  You will also need a copy of wget.
 
 After checking out the code, you will need to perform these steps to get
 to the point where you can run "make".
 
 
- 1) $ autopoint
+ 1) $ autoreconf -i -s
 
-    This will instantiate various m4 macros files, etc. in the config
-    and po directories.
+    This rebuilds all the things that need rebuilding, installing
+    missing files as symbolic links.
 
-
- 2) $ aclocal -I config
-
-    Generate the proper aclocal.m4 file.
+    You may get warnings here about missing files like README, etc.
+    Ignore them, they are harmless.
 
 
- 3) $ autoheader
-
-    Generate a "config.h.in" file from the contents of configure.in,
-    etc.
-
-
- 4) $ automake --add-missing
-
-    Add (symlink) missing files into the distribution, and generate
-    Makefile.in's from Makefile.am's.
-
-    You will see these perhaps unexpected messages (among others which
-    you should be expecting :)); just ignore them--I know what I'm doing
-    :).
-
-      Makefile.am: required file `./README' not found
-      configure.in:xxx: required file `./build.sh.in' not found
-      Makefile.am:xxx: automatically discovered file `getloadavg.c' should not be explicitly mentioned
-
-
- 5) $ autoconf
-
-    Generate a "configure" script from configure.in and acinclude.m4.
-
-
- 6) $ ./configure
+ 2) $ ./configure
 
     Generate a Makefile
-
-
- 7) $ make update
-
-    Use wget to retrieve various other files that GNU make relies on,
-    but does not keep in its own source tree.
-
 
 At this point you have successfully brought your CVS copy of the GNU
 make source directory up to the point where it can be treated
@@ -120,22 +84,11 @@ That's it, you're done!
 Appendix A - For The Brave
 --------------------------
 
-For those of you who trust me implicitly, or are just brave (or
-foolhardy), here is a canned sequence of commands to build a GNU make
-distribution package from a virgin CVS source checkout (assuming all the
-prerequisites are available of course).
+For the brave (or foolhardy), here is a command to build a GNU make
+distribution package from a virgin CVS source checkout (assuming all
+the prerequisites are available of course).
 
-This list is eminently suitable for a quick swipe o' the mouse and a
-swift click o' mouse-2 into an xterm.  Go for it!
+autoreconf -i -s && ./configure && make && make check && make distcheck
 
 
-autopoint
-aclocal -I config
-autoheader
-automake --add-missing
-autoconf
-./configure
-make update
-make
-make check
-make distcheck
+$Id: README.cvs,v 1.1 2004/04/04 02:03:56 rockyb Exp $
