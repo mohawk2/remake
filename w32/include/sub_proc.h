@@ -2,18 +2,16 @@
 #define SUB_PROC_H
 
 /*
- * Component Name: 
+ * Component Name:
  *
- * $Date$
+ * $Date: 2006/02/01 11:32:07 $
  *
  * $Source$
  *
- * $Revision$
+ * $Revision: 1.2 $
  */
 
-/* $Id$ */
-
-#ifdef WINDOWS32
+/* $Id: sub_proc.h,v 1.2 2006/02/01 11:32:07 rockyb Exp $ */
 
 #define EXTERN_DECL(entry, args) extern entry args
 #define VOID_DECL void
@@ -23,7 +21,7 @@ EXTERN_DECL(HANDLE process_init_fd, (HANDLE stdinh, HANDLE stdouth,
 	HANDLE stderrh));
 EXTERN_DECL(long process_begin, (HANDLE proc, char **argv, char **envp,
 	char *exec_path, char *as_user));
-EXTERN_DECL(long process_pipe_io, (HANDLE proc, char *stdin_data, 
+EXTERN_DECL(long process_pipe_io, (HANDLE proc, char *stdin_data,
 	int stdin_data_len));
 EXTERN_DECL(long process_file_io, (HANDLE proc));
 EXTERN_DECL(void process_cleanup, (HANDLE proc));
@@ -31,6 +29,7 @@ EXTERN_DECL(HANDLE process_wait_for_any, (VOID_DECL));
 EXTERN_DECL(void process_register, (HANDLE proc));
 EXTERN_DECL(HANDLE process_easy, (char** argv, char** env));
 EXTERN_DECL(BOOL process_kill, (HANDLE proc, int signal));
+EXTERN_DECL(int process_used_slots, (VOID_DECL));
 
 /* support routines */
 EXTERN_DECL(long process_errno, (HANDLE proc));
@@ -43,5 +42,4 @@ EXTERN_DECL(int process_outcnt, (HANDLE proc));
 EXTERN_DECL(int process_errcnt, (HANDLE proc));
 EXTERN_DECL(void process_pipes, (HANDLE proc, int pipes[3]));
 
-#endif
-#endif
+#endif /* SUB_PROC_H */
