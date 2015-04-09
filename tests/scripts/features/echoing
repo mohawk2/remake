@@ -1,5 +1,3 @@
-#                                                                    -*-perl-*-
-# $Id: echoing,v 1.2 2005/12/18 23:45:18 rockyb Exp $
 $description = "The following test creates a makefile to test command \n"
               ."echoing.  It tests that when a command line starts with \n"
               ."a '\@', the echoing of that line is suppressed.  It also \n"
@@ -64,13 +62,8 @@ if (-f $example) {
 # TEST #3
 # -------
 
-&run_make_with_options($makefile,"--basename-filenames -n clean",
-		       &get_logfile, 0);
-$answer = "##>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-work/features/echoing.mk:4: clean
-$delete_command $example
-##<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-";
+&run_make_with_options($makefile,"-n clean",&get_logfile,0);
+$answer = "$delete_command $example\n";
 &compare_output($answer,&get_logfile(1));
 
 

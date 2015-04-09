@@ -1,54 +1,59 @@
 \input texinfo                @c -*- Texinfo -*-
 @c %**start of header
 @setfilename make.info
+
+@include version.texi
+@set EDITION 0.70
+@set RCSID $Id: make.texi,v 1.45 2006/04/01 06:36:40 psmith Exp $
+
 @settitle GNU @code{make}
 @setchapternewpage odd
-@c %**end of header
-
+@c Combine the variable and function indices:
+@syncodeindex vr fn
+@c Combine the program and concept indices:
+@syncodeindex pg cp
 @c FSF publishers: format makebook.texi instead of using this file directly.
-
-@set RCSID $Id: make.texi,v 1.21 2007/08/17 02:01:09 rockyb Exp $
-@set EDITION 0.61
-@set VERSION 3.80+dbg
-@set UPDATED 25 Dec 2005
-@set UPDATE-MONTH Dec 2005
 @c ISBN provided by Lisa M. Opus Goldstein <opus@gnu.org>, 5 May 2004
 @set ISBN 1-882114-83-5
+@c %**end of header
+
+@copying
+This file documents the GNU @code{make} utility, which determines
+automatically which pieces of a large program need to be recompiled,
+and issues the commands to recompile them.
+
+This is Edition @value{EDITION}, last updated @value{UPDATED},
+of @cite{The GNU Make Manual}, for GNU @code{make} version @value{VERSION}.
+
+Copyright @copyright{} 1988, 1989, 1990, 1991, 1992, 1993, 1994, 1995,
+1996, 1997, 1998, 1999, 2000, 2002, 2003, 2004, 2005, 2006
+Free Software Foundation, Inc.
+
+@quotation
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.2 or
+any later version published by the Free Software Foundation; with no
+Invariant Sections, with the Front-Cover Texts being ``A GNU Manual,''
+and with the Back-Cover Texts as in (a) below.  A copy of the
+license is included in the section entitled ``GNU Free Documentation
+License.''
+
+(a) The FSF's Back-Cover Text is: ``You have freedom to copy and modify
+this GNU Manual, like GNU software.  Copies published by the Free
+Software Foundation raise funds for GNU development.''
+@end quotation
+@end copying
 
 @c finalout
 
 @c ISPELL CHECK: done, 10 June 1993 --roland
 @c ISPELL CHECK: done, 2000-06-25 --Martin Buchholz
 
-@c Combine the variable and function indices:
-@syncodeindex vr fn
-@c Combine the program and concept indices:
-@syncodeindex pg cp
 
 @dircategory GNU Packages
 @direntry
 * Make: (make).            Remake files automatically.
 @end direntry
-
-@ifnottex
-This file documents the GNU Make utility, which determines
-automatically which pieces of a large program need to be recompiled,
-and issues the commands to recompile them.
-
-This is Edition @value{EDITION}, last updated @value{UPDATED},
-of @cite{The GNU Make Manual}, for @code{make}, Version @value{VERSION}.
-
-Copyright 1988, 1989, 1990, 1991, 1992, 1993, 1994, 1995, 1996, 1997,
-1998, 1999, 2000, 2002, 2003, 2004, 2005
-Free Software Foundation, Inc.
-
-Permission is granted to copy, distribute and/or modify this document
-under the terms of the GNU Free Documentation License, Version 1.1 or
-any later version published by the Free Software Foundation; with no
-Invariant Sections, with no Front-Cover Texts, and with no Back-Cover
-Texts.  A copy of the license is included in the section entitled
-``GNU Free Documentation License''.
-@end ifnottex
 
 @iftex
 @shorttitlepage GNU Make
@@ -57,51 +62,28 @@ Texts.  A copy of the license is included in the section entitled
 @title GNU Make
 @subtitle A Program for Directing Recompilation
 @subtitle GNU @code{make} Version @value{VERSION}
-@subtitle @value{UPDATE-MONTH}
+@subtitle @value{UPDATED-MONTH}
 @author Richard M. Stallman, Roland McGrath, Paul D. Smith
 @page
 @vskip 0pt plus 1filll
-Copyright @copyright{} 1988, 1989, 1990, 1991, 1992, 1993, 1994, 1995,
-1996, 1997, 1998, 1999, 2000, 2002, 2003, 2004 Free Software Foundation, Inc.
+@insertcopying
 @sp 2
 Published by the Free Software Foundation @*
-59 Temple Place -- Suite 330, @*
-Boston, MA 02111-1307 USA @*
+51 Franklin St. -- Fifth Floor @*
+Boston, MA 02110-1301 USA @*
 ISBN @value{ISBN} @*
-
-Permission is granted to copy, distribute and/or modify this document
-under the terms of the GNU Free Documentation License, Version 1.1 or
-any later version published by the Free Software Foundation; with the
-Invariant Sections being ``GNU General Public License'', the Front-Cover
-Texts being ``A GNU Manual'', and with the Back-Cover Texts being as in
-(a) below.  A copy of the license is included in the section entitled
-``GNU Free Documentation License''.
-
-(a) The FSF's Back-Cover Text is:
-
-@quotation
-      You have freedom to copy and modify this GNU Manual, like GNU
-      software.  Copies published by the Free Software Foundation raise
-      funds for GNU development.
-@end quotation
 @sp 2
 Cover art by Etienne Suvasa.
 @end titlepage
-@page
+
+@summarycontents
+@contents
 
 @ifnottex
 @node Top, Overview, (dir), (dir)
-@top Make
+@top GNU @code{make}
 
-The GNU @code{make} utility automatically determines which pieces of a
-large program need to be recompiled, and issues the commands to
-recompile them.@refill
-
-This edition of the @cite{GNU Make Manual},
-last updated @value{UPDATED},
-documents GNU @code{make} Version @value{VERSION}.@refill
-
-This manual describes @code{make} and contains the following chapters:@refill
+@insertcopying
 @end ifnottex
 
 @menu
@@ -162,6 +144,7 @@ Writing Makefiles
 * Overriding Makefiles::        How to override part of one makefile
                                   with another makefile.
 * Reading Makefiles::           How makefiles are parsed.
+* Secondary Expansion::         How and when secondary expansion is performed.
 
 Writing Rules
 
@@ -223,6 +206,16 @@ Writing the Commands in Rules
 * Sequences::                   Defining canned sequences of commands.
 * Empty Commands::              Defining useful, do-nothing commands.
 
+Command Syntax
+
+* Splitting Lines::             Breaking long command lines for readability.
+* Variables in Commands::       Using @code{make} variables in commands.
+
+Command Execution
+
+* Choosing the Shell::          How @code{make} chooses the shell used
+                                  to run commands.
+
 Recursive Use of @code{make}
 
 * MAKE Variable::               The special effects of using @samp{$(MAKE)}.
@@ -267,8 +260,8 @@ Functions for Transforming Text
 * Syntax of Functions::         How to write a function call.
 * Text Functions::              General-purpose text manipulation functions.
 * File Name Functions::         Functions for manipulating file names.
+* Conditional Functions::       Functions that implement conditions.
 * Foreach Function::            Repeat some text with controlled variation.
-* If Function::                 Conditionally expand a value.
 * Call Function::               Expand a user-defined function.
 * Value Function::              Return the un-expanded value of a variable.
 * Eval Function::               Evaluate the arguments as makefile syntax.
@@ -949,6 +942,7 @@ reading a data base called the @dfn{makefile}.
 * Overriding Makefiles::        How to override part of one makefile
                                   with another makefile.
 * Reading Makefiles::           How makefiles are parsed.
+* Secondary Expansion::         How and when secondary expansion is performed.
 @end menu
 
 @node Makefile Contents, Makefile Names, Makefiles, Makefiles
@@ -1090,7 +1084,8 @@ include @var{filenames}@dots{}
 @end example
 
 @noindent
-@var{filenames} can contain shell file name patterns.
+@var{filenames} can contain shell file name patterns.  If
+@var{filenames} is empty, nothing is included and no error is printed.
 @cindex shell file name pattern (in @code{include})
 @cindex shell wildcards (in @code{include})
 @cindex wildcard, in @code{include}
@@ -1355,28 +1350,33 @@ Expands to a list of special features supported by this version of
 @code{make}.  Possible values include:
 
 @table @samp
-@item target-specific
-Supports target-specific and pattern-specific variable assignments.
-@xref{Target-specific, ,Target-specific Variable Values}.
 
-@item order-only
-Supports order-only prerequisites.  @xref{Prerequisite Types, ,Types
-of Prerequisites}.
+@item archives
+Supports @code{ar} (archive) files using special filename syntax.
+@xref{Archives, ,Using @code{make} to Update Archive Files}.
 
-@item second-expansion
-Supports secondary expansion of prerequisite lists.
-
-@item jobserver
-Supports ``job server'' enhanced parallel builds.  @xref{Parallel,
-,Parallel Execution}.
+@item check-symlink
+Supports the @code{-L} (@code{--check-symlink-times}) flag.
+@xref{Options Summary, ,Summary of Options}.
 
 @item else-if
 Supports ``else if'' non-nested conditionals.  @xref{Conditional
 Syntax, ,Syntax of Conditionals}.
 
-@item check-symlink
-Supports the @code{-L} (@code{--check-symlink-times}) flag.
-@xref{Options Summary, ,Summary of Options}.
+@item jobserver
+Supports ``job server'' enhanced parallel builds.  @xref{Parallel,
+,Parallel Execution}.
+
+@item second-expansion
+Supports secondary expansion of prerequisite lists.
+
+@item order-only
+Supports order-only prerequisites.  @xref{Prerequisite Types, ,Types
+of Prerequisites}.
+
+@item target-specific
+Supports target-specific and pattern-specific variable assignments.
+@xref{Target-specific, ,Target-specific Variable Values}.
 
 @end table
 
@@ -1515,7 +1515,7 @@ commands to prevent @code{make} from searching for an implicit rule to
 build it---otherwise it would apply the same match-anything rule to
 @file{force} itself and create a prerequisite loop!
 
-@node Reading Makefiles,  , Overriding Makefiles, Makefiles
+@node Reading Makefiles,  Secondary Expansion, Overriding Makefiles, Makefiles
 @section How @code{make} Reads a Makefile
 @cindex reading makefiles
 @cindex makefile, parsing
@@ -1537,7 +1537,7 @@ constructs within the makefile.  We say that expansion is
 @code{make} will expand any variables or functions in that section of a
 construct as the makefile is parsed.  We say that expansion is
 @dfn{deferred} if expansion is not performed immediately.  Expansion of
-a deferred construct is not performed until either the construct appears
+deferred construct is not performed until either the construct appears
 later in an immediate context, or until the second phase.
 
 You may not be familiar with some of these constructs yet.  You can
@@ -1601,6 +1601,208 @@ That is, the target and prerequisite sections are expanded immediately,
 and the commands used to construct the target are always deferred.  This
 general rule is true for explicit rules, pattern rules, suffix rules,
 static pattern rules, and simple prerequisite definitions.
+
+@node Secondary Expansion, , Reading Makefiles, Makefiles
+@section Secondary Expansion
+@cindex secondary expansion
+@cindex expansion, secondary
+
+@findex .SECONDEXPANSION
+In the previous section we learned that GNU @code{make} works in two
+distinct phases: a read-in phase and a target-update phase
+(@pxref{Reading Makefiles, , How @code{make} Reads a Makefile}).  GNU
+make also has the ability to enable a @emph{second expansion} of the
+prerequisites (only) for some or all targets defined in the makefile.
+In order for this second expansion to occur, the special target
+@code{.SECONDEXPANSION} must be defined before the first prerequisite
+list that makes use of this feature.
+
+If that special target is defined then in between the two phases
+mentioned above, right at the end of the read-in phase, all the
+prerequisites of the targets defined after the special target are
+expanded a @emph{second time}.  In most circumstances this secondary
+expansion will have no effect, since all variable and function
+references will have been expanded during the initial parsing of the
+makefiles.  In order to take advantage of the secondary expansion
+phase of the parser, then, it's necessary to @emph{escape} the
+variable or function reference in the makefile.  In this case the
+first expansion merely un-escapes the reference but doesn't expand it,
+and expansion is left to the secondary expansion phase.  For example,
+consider this makefile:
+
+@example
+.SECONDEXPANSION:
+ONEVAR = onefile
+TWOVAR = twofile
+myfile: $(ONEVAR) $$(TWOVAR)
+@end example
+
+After the first expansion phase the prerequisites list of the
+@file{myfile} target will be @code{onefile} and @code{$(TWOVAR)}; the
+first (unescaped) variable reference to @var{ONEVAR} is expanded,
+while the second (escaped) variable reference is simply unescaped,
+without being recognized as a variable reference.  Now during the
+secondary expansion the first word is expanded again but since it
+contains no variable or function references it remains the static
+value @file{onefile}, while the second word is now a normal reference
+to the variable @var{TWOVAR}, which is expanded to the value
+@file{twofile}.  The final result is that there are two prerequisites,
+@file{onefile} and @file{twofile}.
+
+Obviously, this is not a very interesting case since the same result
+could more easily have been achieved simply by having both variables
+appear, unescaped, in the prerequisites list.  One difference becomes
+apparent if the variables are reset; consider this example:
+
+@example
+.SECONDEXPANSION:
+AVAR = top
+onefile: $(AVAR)
+twofile: $$(AVAR)
+AVAR = bottom
+@end example
+
+Here the prerequisite of @file{onefile} will be expanded immediately,
+and resolve to the value @file{top}, while the prerequisite of
+@file{twofile} will not be full expanded until the secondary expansion
+and yield a value of @file{bottom}.
+
+This is marginally more exciting, but the true power of this feature
+only becomes apparent when you discover that secondary expansions
+always take place within the scope of the automatic variables for that
+target.  This means that you can use variables such as @code{$@@},
+@code{$*}, etc. during the second expansion and they will have their
+expected values, just as in the command script.  All you have to do is
+defer the expansion by escaping the @code{$}.  Also, secondary
+expansion occurs for both explicit and implicit (pattern) rules.
+Knowing this, the possible uses for this feature increase
+dramatically.  For example:
+
+@example
+.SECONDEXPANSION:
+main_OBJS := main.o try.o test.o
+lib_OBJS := lib.o api.o
+
+main lib: $$($$@@_OBJS)
+@end example
+
+Here, after the initial expansion the prerequisites of both the
+@file{main} and @file{lib} targets will be @code{$($@@_OBJS)}.  During
+the secondary expansion, the @code{$@@} variable is set to the name of
+the target and so the expansion for the @file{main} target will yield
+@code{$(main_OBJS)}, or @code{main.o try.o test.o}, while the
+secondary expansion for the @file{lib} target will yield
+@code{$(lib_OBJS)}, or @code{lib.o api.o}.
+
+You can also mix functions here, as long as they are properly escaped:
+
+@example
+main_SRCS := main.c try.c test.c
+lib_SRCS := lib.c api.c
+
+.SECONDEXPANSION:
+main lib: $$(patsubst %.c,%.o,$$($$@@_SRCS))
+@end example
+
+This version allows users to specify source files rather than object
+files, but gives the same resulting prerequisites list as the previous
+example.
+
+Evaluation of automatic variables during the secondary expansion
+phase, especially of the target name variable @code{$$@@}, behaves
+similarly to evaluation within command scripts.  However, there are
+some subtle differences and ``corner cases'' which come into play for
+the different types of rule definitions that @code{make} understands.
+The subtleties of using the different automatic variables are
+described below.
+
+@subheading Secondary Expansion of Explicit Rules
+@cindex secondary expansion and explicit rules
+@cindex explicit rules, secondary expansion of
+
+During the secondary expansion of explicit rules, @code{$$@@} and
+@code{$$%} evaluate, respectively, to the file name of the target and,
+when the target is an archive member, the target member name.  The
+@code{$$<} variable evaluates to the first prerequisite in the first
+rule for this target.  @code{$$^} and @code{$$+} evaluate to the list
+of all prerequisites of rules @emph{that have already appeared} for
+the same target (@code{$$+} with repetitions and @code{$$^}
+without).  The following example will help illustrate these behaviors:
+
+@example
+.SECONDEXPANSION:
+
+foo: foo.1 bar.1 $$< $$^ $$+    # line #1
+
+foo: foo.2 bar.2 $$< $$^ $$+    # line #2
+
+foo: foo.3 bar.3 $$< $$^ $$+    # line #3
+@end example
+
+In the first prerequisite list, all three variables (@code{$$<},
+@code{$$^}, and @code{$$+}) expand to the empty string.  In the
+second, they will have values @code{foo.1}, @code{foo.1 bar.1}, and
+@code{foo.1 bar.1} respectively.  In the third they will have values
+@code{foo.1}, @code{foo.1 bar.1 foo.2 bar.2}, and @code{foo.1 bar.1
+foo.2 bar.2} respectively.
+
+Rules undergo secondary expansion in makefile order, except that
+the rule with the command script is always evaluated last.
+
+The variables @code{$$?} and @code{$$*} are not available and expand
+to the empty string.
+
+@subheading Secondary Expansion of Static Pattern Rules
+@cindex secondary expansion and static pattern rules
+@cindex static pattern rules, secondary expansion of
+
+Rules for secondary expansion of static pattern rules are identical to
+those for explicit rules, above, with one exception: for static
+pattern rules the @code{$$*} variable is set to the pattern stem.  As
+with explicit rules, @code{$$?} is not available and expands to the
+empty string.
+
+@subheading Secondary Expansion of Implicit Rules
+@cindex secondary expansion and implicit rules
+@cindex implicit rules, secondary expansion of
+
+As @code{make} searches for an implicit rule, it substitutes the stem
+and then performs secondary expansion for every rule with a matching
+target pattern.  The value of the automatic variables is derived in
+the same fashion as for static pattern rules.  As an example:
+
+@example
+.SECONDEXPANSION:
+
+foo: bar
+
+foo foz: fo%: bo%
+
+%oo: $$< $$^ $$+ $$*
+@end example
+
+When the implicit rule is tried for target @file{foo}, @code{$$<}
+expands to @file{bar}, @code{$$^} expands to @file{bar boo},
+@code{$$+} also expands to @file{bar boo}, and @code{$$*} expands to
+@file{f}.
+
+Note that the directory prefix (D), as described in @ref{Implicit Rule
+Search, ,Implicit Rule Search Algorithm}, is appended (after
+expansion) to all the patterns in the prerequisites list.  As an
+example:
+
+@example
+.SECONDEXPANSION:
+
+/tmp/foo.o:
+
+%.o: $$(addsuffix /%.c,foo bar) foo.h
+@end example
+
+The prerequisite list after the secondary expansion and directory
+prefix reconstruction will be @file{/tmp/foo/foo.c /tmp/var/bar/foo.c
+foo.h}.  If you are not interested in this reconstruction, you can use
+@code{$$*} instead of @code{%} in the prerequisites list.
 
 @node Rules, Commands, Makefiles, Top
 @chapter Writing Rules
@@ -1730,12 +1932,13 @@ same.  There are other differences in the syntax of command lines.
 @cindex dollar sign (@code{$}), in rules
 @cindex @code{$}, in rules
 @cindex rules, and @code{$}
-Because dollar signs are used to start variable references, if you really
-want a dollar sign in a rule you must write two of them, @samp{$$}
-(@pxref{Using Variables, ,How to Use Variables}).
-You may split a long line by inserting a backslash
-followed by a newline, but this is not required, as @code{make} places no
-limit on the length of a line in a makefile.
+Because dollar signs are used to start @code{make} variable
+references, if you really want a dollar sign in a target or
+prerequisite you must write two of them, @samp{$$} (@pxref{Using
+Variables, ,How to Use Variables}).  If you have enabled secondary
+expansion (@pxref{Secondary Expansion}) and you want a literal dollar
+sign in the prerequisites lise, you must actually write @emph{four}
+dollar signs (@samp{$$$$}).
 
 You may split a long line by inserting a backslash followed by a
 newline, but this is not required, as @code{make} places no limit on
@@ -1830,10 +2033,10 @@ directory for each user (such as MS-DOS or MS-Windows), this
 functionality can be simulated by setting the environment variable
 @var{HOME}.@refill
 
-Wildcard expansion happens automatically in targets, in prerequisites,
-and in commands (where the shell does the expansion).  In other
-contexts, wildcard expansion happens only if you request it explicitly
-with the @code{wildcard} function.
+Wildcard expansion is performed by @code{make} automatically in
+targets and in prerequisites.  In commands the shell is responsible
+for wildcard expansion.  In other contexts, wildcard expansion happens
+only if you request it explicitly with the @code{wildcard} function.
 
 The special significance of a wildcard character can be turned off by
 preceding it with a backslash.  Thus, @file{foo\*bar} would refer to a
@@ -2391,11 +2594,6 @@ variable to an empty value.
 @cindex targets, phony
 @cindex targets without a file
 
-@menu
-* Phony Targets Prerequisites::
-* Phony Targets in Recursive Invocations::
-@end menu
-
 A phony target is one that is not really the name of a file.  It is just a
 name for some commands to be executed when you make an explicit request.
 There are two reasons to use a phony target: to avoid a conflict with
@@ -2451,9 +2649,6 @@ clean:
 @end group
 @end example
 
-@node Phony Targets in Recursive Invocations
-@subsection Phony Targets in Recursive Invocations
-
 Another example of the usefulness of phony targets is in conjunction
 with recursive invocations of @code{make} (for more information, see
 @ref{Recursion, ,Recursive Use of @code{make}}).  In this case the
@@ -2505,6 +2700,13 @@ built until after the @file{baz} subdirectory is complete; this kind of
 relationship declaration is particularly important when attempting
 parallel builds.
 
+A phony target should not be a prerequisite of a real target file; if it
+is, its commands are run every time @code{make} goes to update that
+file.  As long as a phony target is never a prerequisite of a real
+target, the phony target commands will be executed only when the phony
+target is a specified goal (@pxref{Goals, ,Arguments to Specify the
+Goals}).
+
 Phony targets can have prerequisites.  When one directory contains multiple
 programs, it is most convenient to describe all of the programs in one
 makefile @file{./Makefile}.  Since the target remade by default will be the
@@ -2548,34 +2750,6 @@ cleanobj :
 cleandiff :
         rm *.diff
 @end example
-
-@node Phony Targets Prerequisites
-@subsection Phony Targets Prerequisites
-Normally a phony target is not be a prerequisite of a real target
-file, because that would mean commands are run every time @code{make}
-goes to update that file.  
-
-However if you have targets which you want remade everytime you run
-make, then this using a phony target which has a real target is a
-convenient way to do it.
-
-For example, suppose one has a rule like:
-@example
-FORCE:
-
-.PHONY: FORCE
-
-# run compiler to produce preprocessor output into .pp file...
-%.pp : %.c FORCE
-@end example 
-
-Something like this can be used for debugging macros and other
-oddities. The @code{%.pp} is never a normal target, but used
-explicitly on the command line like so:
-
-@smallexample
-make foo.pp
-@end smallexample 
 
 @node Force Targets, Empty Targets, Phony Targets, Rules
 @section Rules without Commands or Prerequisites
@@ -2723,6 +2897,18 @@ intermediate files, except that they are never automatically deleted.
 as secondary (i.e., no target is removed because it is considered
 intermediate).
 
+@findex .SECONDEXPANSION
+@item .SECONDEXPANSION
+
+If @code{.SECONDEXPANSION} is mentioned as a target anywhere in the
+makefile, then all prerequisite lists defined @emph{after} it appears
+will be expanded a second time after all makefiles have been read in.
+@xref{Secondary Expansion, ,Secondary Expansion}.
+
+The prerequisites of the special target @code{.SUFFIXES} are the list
+of suffixes to be used in checking for suffix rules.
+@xref{Suffix Rules, , Old-Fashioned Suffix Rules}.
+
 @findex .DELETE_ON_ERROR
 @item .DELETE_ON_ERROR
 @cindex removing targets on failure
@@ -2796,9 +2982,6 @@ recommend you use the more selective ways to silence specific commands.
 @xref{Echoing, ,Command Echoing}.  If you want to silence all commands
 for a particular run of @code{make}, use the @samp{-s} or
 @w{@samp{--silent}} option (@pxref{Options Summary}).
-
-As with those other methods, when one is debugging a programming
-silence is disabled when tracing.
 
 @findex .EXPORT_ALL_VARIABLES
 @item .EXPORT_ALL_VARIABLES
@@ -3583,10 +3766,6 @@ the makefile:
 @@echo About to make distribution files
 @end example
 
-If however one is tracing or in the midst of debugging it is useful to
-@emph{not} be silent. So tracing and debugging take precedence over
-``silence''.
-
 @cindex @code{-n}
 @cindex @code{--just-print}
 @cindex @code{--dry-run}
@@ -3602,13 +3781,12 @@ actually doing them.
 @cindex @code{--silent}
 @cindex @code{--quiet}
 @findex .SILENT
-The @samp{-s} or @samp{--silent} flag to @code{make} prevents all
-echoing (unless tracing is in effect which has precedence). Using the
-@samp{--silent} flag as if all commands started with @samp{@@}.  A
-rule in the makefile for the special target @code{.SILENT} without
-prerequisites has the same effect (@pxref{Special Targets, ,Special
-Built-in Target Names}).  @code{.SILENT} is essentially obsolete since
-@samp{@@} is more flexible.@refill
+The @samp{-s} or @samp{--silent}
+flag to @code{make} prevents all echoing, as if all commands
+started with @samp{@@}.  A rule in the makefile for the special target
+@code{.SILENT} without prerequisites has the same effect
+(@pxref{Special Targets, ,Special Built-in Target Names}).
+@code{.SILENT} is essentially obsolete since @samp{@@} is more flexible.@refill
 
 @node Execution, Parallel, Echoing, Commands
 @section Command Execution
@@ -3981,16 +4159,9 @@ times to prevent other sorts of trouble.
 @cindex subdirectories, recursion for
 
 Recursive use of @code{make} means using @code{make} as a command in a
-makefile.  This technique has been used to separate makefiles for
-various subsystems that compose a larger system.  However this can
-lead to slower makefiles and makefiles which don't work when running
-make in parallel because of dependencies which span
-subdirectories. See ``Recursive Make Considered Harmfull'' by Peter
-Miller @url{http://aegis.sourceforge.net/auug97.pdf}.
-
-However should you decide to go this route (and @code{automake}
-typically does), we'll give an example. Suppose you have a
-subdirectory @file{subdir} which has its own makefile, and you would
+makefile.  This technique is useful when you want separate makefiles for
+various subsystems that compose a larger system.  For example, suppose you
+have a subdirectory @file{subdir} which has its own makefile, and you would
 like the containing directory's makefile to run @code{make} on the
 subdirectory.  You can do it by writing this:
 
@@ -6025,8 +6196,8 @@ call, just as a variable might be substituted.
 * Syntax of Functions::         How to write a function call.
 * Text Functions::              General-purpose text manipulation functions.
 * File Name Functions::         Functions for manipulating file names.
+* Conditional Functions::       Functions that implement conditions.
 * Foreach Function::            Repeat some text with controlled variation.
-* If Function::                 Conditionally expand a value.
 * Call Function::               Expand a user-defined function.
 * Value Function::              Return the un-expanded value of a variable.
 * Eval Function::               Evaluate the arguments as makefile syntax.
@@ -6411,6 +6582,7 @@ the @code{lastword} function was added for its simplicity and better
 performance.@refill
 @end table
 
+
 Here is a realistic example of the use of @code{subst} and
 @code{patsubst}.  Suppose that a makefile uses the @code{VPATH} variable
 to specify a list of directories that @code{make} should search for
@@ -6445,7 +6617,7 @@ used so that the new value is assigned even if the previous value of
 @code{CFLAGS} was specified with a command argument (@pxref{Override
 Directive, , The @code{override} Directive}).
 
-@node File Name Functions, Foreach Function, Text Functions, Functions
+@node File Name Functions, Conditional Functions, Text Functions, Functions
 @section Functions for File Names
 @cindex functions, for file names
 @cindex file name functions
@@ -6621,7 +6793,60 @@ the file names to refer to an existing file or directory.  Use the
 @code{wildcard} function to test for existence.
 @end table
 
-@node Foreach Function, If Function, File Name Functions, Functions
+@node Conditional Functions, Foreach Function, File Name Functions, Functions
+@section Functions for Conditionals
+@findex if
+@cindex conditional expansion
+There are three functions that provide conditional expansion.  A key
+aspect of these functions is that not all of the arguments are
+expanded initially.  Only those arguments which need to be expanded,
+will be expanded.
+
+@table @code
+@item $(if @var{condition},@var{then-part}[,@var{else-part}])
+@findex if
+The @code{if} function provides support for conditional expansion in a
+functional context (as opposed to the GNU @code{make} makefile
+conditionals such as @code{ifeq} (@pxref{Conditional Syntax, ,Syntax of
+Conditionals}).
+
+The first argument, @var{condition}, first has all preceding and
+trailing whitespace stripped, then is expanded.  If it expands to any
+non-empty string, then the condition is considered to be true.  If it
+expands to an empty string, the condition is considered to be false.
+
+If the condition is true then the second argument, @var{then-part}, is
+evaluated and this is used as the result of the evaluation of the entire
+@code{if} function.
+
+If the condition is false then the third argument, @var{else-part}, is
+evaluated and this is the result of the @code{if} function.  If there is
+no third argument, the @code{if} function evaluates to nothing (the
+empty string).
+
+Note that only one of the @var{then-part} or the @var{else-part} will be
+evaluated, never both.  Thus, either can contain side-effects (such as
+@code{shell} function calls, etc.)
+
+@item $(or @var{condition1}[,@var{condition2}[,@var{condition3}@dots{}]])
+@findex or
+The @code{or} function provides a ``short-circuiting'' OR operation.
+Each argument is expanded, in order.  If an argument expands to a
+non-empty string the processing stops and the result of the expansion
+is that string.  If, after all arguments are expanded, all of them are
+false (empty), then the result of the expansion is the empty string.
+
+@item $(and @var{condition1}[,@var{condition2}[,@var{condition3}@dots{}]])
+@findex and
+The @code{and} function provides a ``short-circuiting'' AND operation.
+Each argument is expanded, in order.  If an argument expands to an
+empty string the processing stops and the result of the expansion is
+the empty string.  If all arguments expand to a non-empty string then
+the result of the expansion is the expansion of the last argument.
+
+@end table
+
+@node Foreach Function, Call Function, Conditional Functions, Functions
 @section The @code{foreach} Function
 @findex foreach
 @cindex words, iterating over
@@ -6709,41 +6934,7 @@ might be useful if the value of @code{find_files} references the variable
 whose name is @samp{Esta escrito en espanol!} (es un nombre bastante largo,
 no?), but it is more likely to be a mistake.
 
-@node If Function, Call Function, Foreach Function, Functions
-@section The @code{if} Function
-@findex if
-@cindex conditional expansion
-
-The @code{if} function provides support for conditional expansion in a
-functional context (as opposed to the GNU @code{make} makefile
-conditionals such as @code{ifeq} (@pxref{Conditional Syntax, ,Syntax of
-Conditionals}).
-
-An @code{if} function call can contain either two or three arguments:
-
-@example
-$(if @var{condition},@var{then-part}[,@var{else-part}])
-@end example
-
-The first argument, @var{condition}, first has all preceding and
-trailing whitespace stripped, then is expanded.  If it expands to any
-non-empty string, then the condition is considered to be true.  If it
-expands to an empty string, the condition is considered to be false.
-
-If the condition is true then the second argument, @var{then-part}, is
-evaluated and this is used as the result of the evaluation of the entire
-@code{if} function.
-
-If the condition is false then the third argument, @var{else-part}, is
-evaluated and this is the result of the @code{if} function.  If there is
-no third argument, the @code{if} function evaluates to nothing (the
-empty string).
-
-Note that only one of the @var{then-part} or the @var{else-part} will be
-evaluated, never both.  Thus, either can contain side-effects (such as
-@code{shell} function calls, etc.)
-
-@node Call Function, Value Function, If Function, Functions
+@node Call Function, Value Function, Foreach Function, Functions
 @section The @code{call} Function
 @findex call
 @cindex functions, user defined
@@ -7758,45 +7949,6 @@ By default, the above messages are not enabled while trying to remake
 the makefiles.  This option enables messages while rebuilding makefiles,
 too.  Note that the @samp{all} option does enable this option.  This
 option also enables @samp{basic} messages.
-
-@item r (@i{read})
-Gives status on each Makefile as it is read in.
-@end table
-
-@item --no-extended-errors
-
-Do not give a target stack trace when a fatal error is encountered.
-
-@item --debugger[=@var{options}]
-@cindex @code{--debugger}
-@c Extra blank line here makes the table look better.
-
-Enter the debugger.  Various points of entry and granularity of
-debugging can be chosen.  With no arguments, ``basic'' debug tracing
-is turned on and the debugger is entered @code{make} would execute the
-first command.  Possible arguments are
-below.
-
-@table @code
-@item normal
-This is the default behavior; ``basic'' debug tracing is turned on and
-the debugger is entered before executing the first command.
-
-@item preread
-The debugger is entered before any Makefile is read and stepping goes
-to the next Makefile read.
-
-@item full
-A level above @samp{basic}; includes messages about which makefiles were
-parsed, prerequisites that did not need to be rebuilt, etc.  This option
-also enables @samp{basic} messages.
-
-@item error
-The debugger is entered after hitting an error.
-
-@item fatal
-The debugger is entered after a fatal error.
-
 @end table
 
 @item -e
@@ -8010,39 +8162,6 @@ from complicated nests of recursive @code{make} commands.
 rarely need to specify this option since @samp{make} does it for you;
 see @ref{-w Option, ,The @samp{--print-directory} Option}.)
 
-@item -x
-@cindex @code{-x}
-@itemx --trace
-@cindex @code{--touch}
-@c Extra blank line here makes the table look better.
-
-Turn on tracing makefile execution. Various levels of granularity
-debugging can be chosen.  With no arguments, ``basic'' debug tracing
-is turned on and the debugger is entered @code{make} would execute the
-first command.  Possible arguments are below.
-
-@table @code
-@item commands
-Just turn on tracing of commands that are executed. We suppress the
-supression of commands using @samp{@@}. In other words, all commands
-are echoed.
-
-@item normal
-This is the default behavior; ``basic'' debug tracing is turned on,
-command tracing is turned on and the debugger is entered before
-executing the first command.
-
-@item noshell
-Don't run shell commands.
-
-@item read
-A little more verbose than ``normal''. Trace reading Makefiles
-
-@item full
-The most verbose tracing. 
-@end table
-
-
 @itemx --no-print-directory
 @cindex @code{--no-print-directory}
 Disable printing of the working directory under @code{-w}.
@@ -8126,7 +8245,7 @@ retained for compatibility.
 * Chained Rules::               How to use a chain of implicit rules.
 * Pattern Rules::               How to define new implicit rules.
 * Last Resort::                 How to define commands for rules which
-                                cannot find any.
+                                  cannot find any.
 * Suffix Rules::                The old-fashioned style of implicit rule.
 * Implicit Rule Search::        The precise algorithm for applying
                                   implicit rules.
@@ -8222,10 +8341,10 @@ canceling or overriding an implicit rule.  The @samp{-r} or
 @samp{--no-builtin-rules} option cancels all predefined rules.
 
 This manual only documents the default rules available on POSIX-based
-operating systems.  Other operating systems, Windows, etc. may have
-different sets of default rules.  To see the full list of default
-rules and variables available in your version of GNU @code{make}, run
-@samp{make -p} in a directory with no makefile.
+operating systems.  Other operating systems, such as VMS, Windows,
+OS/2, etc. may have different sets of default rules.  To see the full
+list of default rules and variables available in your version of GNU
+@code{make}, run @samp{make -p} in a directory with no makefile.
 
 Not all of these rules will always be defined, even when the @samp{-r}
 option is not given.  Many of the predefined implicit rules are
@@ -9009,9 +9128,10 @@ the command script.  In particular, you cannot use them anywhere
 within the target list of a rule; they have no value there and will
 expand to the empty string.  Also, they cannot be accessed directly
 within the prerequisite list of a rule.  A common mistake is
-attempting to use @code{$@@} within the prerequisites list in a rule;
-this will not work.  However, see below for information on the
-SysV-style @code{$$@@} variables.
+attempting to use @code{$@@} within the prerequisites list; this will
+not work.  However, there is a special feature of GNU @code{make},
+secondary expansion (@pxref{Secondary Expansion}), which will allow
+automatic variable values to be used in prerequisite lists.
 
 Here is a table of automatic variables:
 
@@ -10968,9 +11088,6 @@ tar.zoo: $(SRCS) $(AUX)
 @end example
 
 @raisesections
-@node GNU Free Documentation License, Concept Index, Complex Makefile, Top
-@appendixsec GNU Free Documentation License
-@cindex FDL, GNU Free Documentation License
 @include fdl.texi
 @lowersections
 
@@ -10984,6 +11101,4 @@ tar.zoo: $(SRCS) $(AUX)
 
 @printindex fn
 
-@summarycontents
-@contents
 @bye

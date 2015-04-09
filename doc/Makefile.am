@@ -1,53 +1,35 @@
-## Process this file with automake to create Makefile.in.
+# -*-Makefile-*-, or close enough
+# Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006 Free Software
+# Foundation, Inc.
+# This file is part of GNU Make.
+#
+# GNU Make is free software; you can redistribute it and/or modify it under the
+# terms of the GNU General Public License as published by the Free Software
+# Foundation; either version 2, or (at your option) any later version.
+#
+# GNU Make is distributed in the hope that it will be useful, but WITHOUT ANY
+# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+# A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along with
+# GNU Make; see the file COPYING.  If not, write to the Free Software
+# Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
 
-## Makefile for GNU make documentation.
-## Copyright 2002, 2004, 2005, 2006 Free Software Foundation, Inc.
+TEXI2HTML = texi2html
+TEXI2HTML_FLAGS = -split_chapter
 
-transform = s,make,@MAKE_NAME@,
-
-info_TEXINFOS = make.texi mdb.texi
+info_TEXINFOS =	make.texi
 make_TEXINFOS = fdl.texi make-stds.texi
-TEXI2PDF = texi2dvi --pdf
 
-MOSTLYCLEANFILES = make.tgs make.pdf make.html mdb.cps mdb.kys mdb.html mdb.fns mdb.ps.gz mdb.pdf 
-
-CLEANFILES = make*.html make*.info*
-
-# Extra stuff to include in the distribution.
-
-EXTRA_DIST =	doxygen/Doxyfile doxygen/Doxyfile.in doxygen/Doxyfile \
-	        doxygen/run_doxygen fdl.texi make.texi \
-	        make.info make-stds.texi mdb.texi mdb.info version-mdb.texi
+CLEANFILES = make*.html
 
 ## ----------------------------- ##
 ## Other documentation formats.  ##
 ## ----------------------------- ##
 
-all: mdb.info make.info
+html: make_1.html
 
-$(srcdir)/version-mdb.texi: $(srcdir)/stamp-vti
+make_1.html: $(info_TEXINFOS) $(make_TEXINFOS)
+	$(TEXI2HTML) $(TEXI2HTML_FLAGS) $(srcdir)/make.texi
 
-reference:
-	-( cd ${top_srcdir} && $(MAKE) doxygen )
-
-doxygen:
-	-( cd ${top_srcdir}/doc/doxygen && /bin/sh ${srcdir}/run_doxygen )
-
-html: make.html mdb.html
-
-.texi.html:
-	texi2html $<
-
-.texi.pdf:
-	texi2pdf $<
-
-.texi.dvi:
-	texi2dvi $<
-
-.texi.info:
-	makeinfo $< 
-
-.texi.txt:
-	makeinfo --no-headers $< > $@
-
-
+.PHONY: html

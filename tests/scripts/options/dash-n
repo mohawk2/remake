@@ -1,5 +1,4 @@
 #                                                                    -*-perl-*-
-# $Id: dash-n,v 1.3 2005/12/19 06:52:42 rockyb Exp $
 $description = "Test the -n option.\n";
 
 $details = "Try various uses of -n and ensure they all give the correct results.\n";
@@ -22,24 +21,13 @@ close(MAKEFILE);
 # TEST 0
 
 &run_make_with_options($makefile, "", &get_logfile);
-$answer = "echo >> intermediate
-echo >> final
-";
+$answer = "echo >> intermediate\necho >> final\n";
 &compare_output($answer, &get_logfile(1));
 
 # TEST 1
 
-&run_make_with_options($makefile, "-Worig -n --basename-filenames", 
-		       &get_logfile);
-$answer = "##>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-work/options/dash-n.mk:3: intermediate
-echo >> intermediate
-##<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-##>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-work/options/dash-n.mk:2: final
-echo >> final
-##<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-";
+&run_make_with_options($makefile, "-Worig -n", &get_logfile);
+$answer = "echo >> intermediate\necho >> final\n";
 &compare_output($answer, &get_logfile(1));
 
 unlink('orig', 'intermediate', 'final');

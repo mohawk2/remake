@@ -1,268 +1,21 @@
 GNU make NEWS                                               -*-indented-text-*-
   History of user-visible changes.
+  1 April 2006
 
 See the end of this file for copyrights and conditions.
 
-Please send remake bug reports to <bashdb-remake@lists.sourceforge.net>.
-See the README file and the GNU remake manual for details on sending bug
-reports.
+All changes mentioned here are more fully described in the GNU make
+manual, which is contained in this distribution as the file doc/make.texi.
+See the README file and the GNU make manual for instructions for
+reporting bugs.
 
+Version 3.81
 
-Version 3.80+dbg-0.63cvs
+* GNU make is ported to OS/2.
 
-* Add a "list" command. Basically same as "target x depends commands" 
-  for now. "list -" shows the parent. 
-
-* Help commands now show short usage.
-
-* Ctrl-d leaves debugger 
-
-* Add Emacs regression test and allow space in filename for MS Windows
-
-Version 3.80+dbg-0.62
-2007-02-27
-
-* Changes to make more Debian compatibile. 
-
-* Track some GNU Make 3.81 changes, which include a bugfix
-  and making more strings "const". 
-
-* Miscellaneous bugfixes
-
-Version 3.80+dbg-0.61
-2006-03-24
-
-* Add comint shell tracking - taken from python's pdbtrack
-
-* Add gdb's cd and pwd commands.
-  
-* "write" command now adds "cd <directory name>" as a comment.
-  
-* configure options:
-   --with-default-shell to specify the default value
-     for SHELL (useful on say Solaris), 
-   --with-shell-trace to specify the option to turn on tracing, e.g. (-x).
-
-  
-* Add configure option --with-shell-trace to specify how to turn on
-  tracing when running shell commands.
-
-* Add --trace=normal. 
-
-* run wasn't reading any (optional) arguments supplied.
-
-* Guard against dereferencing NULL pointers.
-
-* Some 3.81 features and bugfixes have been incorporated. At present
-  not everything is there. 
-
-* More doxygen documentation and docuementation improvements. Note
-  debugger options in Manual page.
-
-Version 3.80+dbg-0.60
-2005-12-25
-
-* On a fatal error we now show command arguments used to invoke
-  program.
-
-* tracing now sets shell tracing (+x) when invoking commands
-
-* The default behavior on error is to show call trace. To turn off use
-  --no-extended-errors. Recently added --extended-errors and -E (not in
-  standard GNU Make) have been removed.
-
-* "quit" can now terminate several levels of nested make (if "make"
-  was called directly and not via a shell string).
-
-* prompt now shows target and prerequisites.
-
-* Fix bugs and memory leaks involving improper use of memory can weak
-  casting.  (shown in the vpath regression test dash-I on cygwin).
-
-* Reorganize help command. Is more ddd-friendly (and more gdb like).
-
-* More explicit free's of memory at termination. 
-
-* Give line numbers and target names on --just-print. Print delmiters
-  around the commands.
-
-* More debug tracing funnelled through db_level. Debugger command
-  "show debug" shows the debug mask in a more understandable way.
-
-* Incorporate patches from GNU/Linux make 3.80.
-
-* Incorporate new functions from GNU Make 3.81: abspath, realpath, lastword
-
-* Expand documentation.
-
-* NOTE: the prompt has changed from "makedb" to "mdb" as has the 
-  Emacs Lisp command name to run the debugger. This change was made to 
-  avoid confusion between the Make debugger and a program which
-  creates a DBM file. If you were using ddd-3.3.12-test.tar.gz you
-  will need to get a newer version.
-
-Version 3.80+dbg-0.5
-2005-12-10 
-
-* Errors in eval issued from the debugger no longer cause termination.
-
-* Separation of "Step" and "Next. "Step" command granularity is now
-  "Next". "Step" stepping is more fine grained.
-
-* "target" command improvements:
-   - sets file variables when showing is requested
-   - add "target expand" to list target commands with "make" variables
-     expanded.
-   - allow @ or $@ as a target name 
-
-* Add "info makefiles" to show what Makefiles have been read in.
-
-* Add "info breakpoints"
-
-* Breakpoints can now be listed and deleted by number - like gdb.
-  This also helps ddd and should pave the way for more sophisticated
-  kinds of breaking/watching.
-
-* Add a number of aliases (e.g. backtrace, bt, !!, L)
-  and via an internal alias mechanism
-
-* Remove hash stats on printing variables -- generally not wanted for
-  users (rather than GNU Make maintainers)
-
-* Add explicit memory free and reduce reading uninitialized values.
-
-* Revise testing mechanism for a more modern use of Perl. Can specify 
-  test program file name (./scripts/variables/special) test name
-  (variables/special). The former is works better with command
-  completion. Document some more regression tests.
-
-* Make build work outside of source tree. "make distcheck" doesn't bomb.
-  It doesn't run the regression tests though :-(
-
-* More documentation and doxygenization.
-
-* Remove AMIGA support :-(
-
-Version 3.80+dbg-0.4
-2005-12-10 
-
-* Add eval!
-
-* Add ability to stop before reading Makefiles - may be useful in 
-  debugging macros and variables --debugger=preread. We can now trace
-  makefile reading activity with -d r or via --trace = {read,full}
-  
-* "where" command expanded to include above new Makefile read stack.
-
-* Add call tracing.
-
-* Fix bugs in showing automatic variables 
-
-* Line number in Makefile commands is more accurate
-
-* More ddd (gdb/bashdb) compatible: 
-  - "help set" added 
-  - "help show" works like the others
-  - "info locals" added
-  - "show command" (history) added
-  - file/line reporting more like bash/perl
-
-* write file takes basename of target file (well, at least for POSIX
-  systems)
-
-* Update documentation quite a bit
-
-* Start to remove VMS support
-
-Version 3.80+dbg-0.3
-
-* tracing adds GNU Make "basic" debugging. If debugging, then we also
-  enter the debugger read loop. Hopefully this adds more granularity
-  but not the diarrhea that "make -d" gives. To reduce this, "next"
-  could be used to skip over remaking targets that don't have
-  commands.
-
-* print and examine now show origin status
-
-* print/examine work for automatic variables. examine still has 
-  problems with automatic variables in strings though.
-
-* Allow abbreviations of debugger command attributes. As a result some
-  attributes were renamed slighly, e.g. vars -> variables, deps ->
-  depends, cmds -> commands. But note that since substrings are
-  allowed, "command" and "com", and even "c" is the same as
-  "commands".
-
-* Make option --trace (-x) overrules using the --silent option and
-  not echoing @ commands.
-
-* "list" command renamed to "target". A future "list" command will 
-  look more like gdb.
-
-* fixed compilation issue(s) on systems that have readline, but do not
-  have termcap.
-	
-* fixed failure of enter_debugger to exit on an empty line from
-  readline.
-
-* install program as remake by default (not make).
-
-* misc bug fixes and compilations fixes for various OS's
-
-
-Version 3.80+dbg-0.2
-
-* Add ability to print specified attributes of a target, e.g. "time",
-  "deps", "vars"...
-
-* Improve reporting target locations.
-
-* Improve target stack tracking.
-
-* Add "write" command - ability to write target commands to a file
-  with MAKE variables expanded, or show that inside a debugger
-  session.
-
-* Separate info from show. Make these act more like they do in gdb
-
-* Stay in debugger when a Makefile exits.
-
-* First debugger documentation.
-
-Version 3.80+dbg-0.1
-
-Fork from version 3.80 
-
-* New options
-  --extended-errors (-E) call stack reporting, extended error reporting
-  --trace (-x) gives tracing information before a command is run.
-* Line numbers of commands in a target as they execute
-* --debugger enters debugger comamnds are
-
-  execution
-   step, next, continue, skip
-   restart, quit, exit
-
-  breakpoints
-   break   target
-   delete  target
-
-  data 
-   print   variable
-   examine string 
-   up, down, frame
-   set, setq
-   where
-
-  debugger   
-   show, info
-   trace {on, off, toggle}
-   help
-
-* Emacs debug interface makedb.el and a patched to gud.el
-
-
-Version 3.81rc2
+* GNU make is ported to MinGW.  The MinGW build is only supported by
+  the build_w32.bat batch file; see the file README.W32 for more
+  details.
 
 * WARNING: Future backward-incompatibility!
   Up to and including this release, the '$?' variable does not contain
@@ -272,6 +25,131 @@ Version 3.81rc2
   the target to be considered out of date.  See this Savannah bug:
   http://savannah.gnu.org/bugs/index.php?func=detailitem&item_id=16051
 
+* WARNING: Backward-incompatibility!
+  GNU make now implements a generic "second expansion" feature on the
+  prerequisites of both explicit and implicit (pattern) rules.  In order
+  to enable this feature, the special target '.SECONDEXPANSION' must be
+  defined before the first target which takes advantage of it.  If this
+  feature is enabled then after all rules have been parsed the
+  prerequisites are expanded again, this time with all the automatic
+  variables in scope.  This means that in addition to using standard
+  SysV $$@ in prerequisites lists, you can also use complex functions
+  such as $$(notdir $$@) etc.  This behavior applies to implicit rules,
+  as well, where the second expansion occurs when the rule is matched.
+  However, this means that when '.SECONDEXPANSION' is enabled you must
+  double-quote any "$" in your filenames; instead of "foo: boo$$bar" you
+  now must write "foo: foo$$$$bar".  Note that the SysV $$@ etc. feature,
+  which used to be available by default, is now ONLY available when the
+  .SECONDEXPANSION target is defined.  If your makefiles take advantage
+  of this SysV feature you will need to update them.
+
+* WARNING: Backward-incompatibility!
+  In order to comply with POSIX, the way in which GNU make processes
+  backslash-newline sequences in command strings has changed.  If your
+  makefiles use backslash-newline sequences inside of single-quoted
+  strings in command scripts you will be impacted by this change.  See
+  the GNU make manual subsection "Splitting Command Lines" (node
+  "Splitting Lines"), in section "Command Syntax", chapter "Writing the
+  Commands in Rules", for details.
+
+* WARNING: Backward-incompatibility!
+  Some previous versions of GNU make had a bug where "#" in a function
+  invocation such as $(shell ...) was treated as a make comment.  A
+  workaround was to escape these with backslashes.  This bug has been
+  fixed: if your makefile uses "\#" in a function invocation the
+  backslash is now preserved, so you'll need to remove it.
+
+* New command-line option: -L (--check-symlink-times).  On systems that
+  support symbolic links, if this option is given then GNU make will
+  use the most recent modification time of any symbolic links that are
+  used to resolve target files.  The default behavior remains as it
+  always has: use the modification time of the actual target file only.
+
+* The "else" conditional line can now be followed by any other valid
+  conditional on the same line: this does not increase the depth of the
+  conditional nesting, so only one "endif" is required to close the
+  conditional.
+
+* All pattern-specific variables that match a given target are now used
+  (previously only the first match was used).
+
+* Target-specific variables can be marked as exportable using the
+  "export" keyword.
+
+* In a recursive $(call ...) context, any extra arguments from the outer
+  call are now masked in the context of the inner call.
+
+* Implemented a solution for the "thundering herd" problem with "-j -l".
+  This version of GNU make uses an algorithm suggested by Thomas Riedl
+  <thomas.riedl@siemens.com> to track the number of jobs started in the
+  last second and artificially adjust GNU make's view of the system's
+  load average accordingly.
+
+* New special variables available in this release:
+   - .INCLUDE_DIRS: Expands to a list of directories that make searches
+     for included makefiles.
+   - .FEATURES: Contains a list of special features available in this
+     version of GNU make.
+   - .DEFAULT_GOAL: Set the name of the default goal make will
+     use if no goals are provided on the command line.
+   - MAKE_RESTARTS: If set, then this is the number of times this
+     instance of make has been restarted (see "How Makefiles Are Remade"
+     in the manual).
+   - New automatic variable: $| (added in 3.80, actually): contains all
+     the order-only prerequisites defined for the target.
+
+* New functions available in this release:
+   - $(lastword ...) returns the last word in the list.  This gives
+     identical results as $(word $(words ...) ...), but is much faster.
+   - $(abspath ...) returns the absolute path (all "." and ".."
+     directories resolved, and any duplicate "/" characters removed) for
+     each path provided.
+   - $(realpath ...) returns the canonical pathname for each path
+     provided.  The canonical pathname is the absolute pathname, with
+     all symbolic links resolved as well.
+   - $(info ...) prints its arguments to stdout.  No makefile name or
+     line number info, etc. is printed.
+   - $(flavor ...) returns the flavor of a variable.
+   - $(or ...) provides a short-circuiting OR conditional: each argument
+     is expanded.  The first true (non-empty) argument is returned; no
+     further arguments are expanded.  Expands to empty if there are no
+     true arguments.
+   - $(and ...) provides a short-circuiting AND conditional: each
+     argument is expanded.  The first false (empty) argument is
+     returned; no further arguments are expanded.  Expands to the last
+     argument if all arguments are true.
+
+* Changes made for POSIX compatibility:
+   - Only touch targets (under -t) if they have at least one command.
+   - Setting the SHELL make variable does NOT change the value of the
+     SHELL environment variable given to programs invoked by make.  As
+     an enhancement to POSIX, if you export the make variable SHELL then
+     it will be set in the environment, just as before.
+
+* On MS Windows systems, explicitly setting SHELL to a pathname ending
+  in "cmd" or "cmd.exe" (case-insensitive) will force GNU make to use
+  the DOS command interpreter in batch mode even if a UNIX-like shell
+  could be found on the system.
+
+* On VMS there is now support for case-sensitive filesystems such as ODS5.
+  See the readme.vms file for information.
+
+* Parallel builds (-jN) no longer require a working Bourne shell on
+  Windows platforms.  They work even with the stock Windows shells, such
+  as cmd.exe and command.com.
+
+* Updated to autoconf 2.59, automake 1.9.5, and gettext 0.14.1.  Users
+  should not be impacted.
+
+* New translations for Swedish, Chinese (simplified), Ukrainian,
+  Belarusian, Finnish, Kinyarwandan, and Irish.  Many updated
+  translations.
+
+A complete list of bugs fixed in this version is available here:
+
+  http://savannah.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=103
+
+
 Version 3.80
 
 * A new feature exists: order-only prerequisites.  These prerequisites
@@ -348,6 +226,11 @@ Version 3.80
   See ABOUT-NLS for more information.
 
 * Updated to autoconf 2.54 and automake 1.7.  Users should not be impacted.
+
+A complete list of bugs fixed in this version is available here:
+
+  http://savannah.gnu.org/bugs/index.php?group=make&report_id=111&fix_release_id=102
+
 
 Version 3.79.1
 

@@ -1,22 +1,7 @@
 #                                                                    -*-perl-*-
-# $Id: export,v 1.4 2005/12/04 19:40:34 rockyb Exp $
 $description = "Check GNU make export/unexport commands.";
 
-$details = "
-TEST  1: basic functioning
-TEST  2: make sure variables inherited from the parent are exported
-TEST  3: global export.  Explicit unexport takes precedence.
-TEST  4: global unexport.  Explicit export takes precedence.
-TEST  5: both: in the above makefile the unexport comes last so that rules.
-TEST  6: pseudo target.
-TEST  7: expansion of variables inside export
-TEST  8: expansion of variables inside unexport
-TEST  9: exporting multiple variables on the same line
-TEST 10: unexporting multiple variables on the same line
-
-Cygwin (at least seems) to have trouble *removing* environment
-variables, so tests 4 and 5 are skipped on that platform.
-";
+$details = "";
 
 # The test driver cleans out our environment for us so we don't have to worry
 # about that here.
@@ -60,60 +45,64 @@ EOMAKE
 
 close(MAKEFILE);
 
-sub run_test_compare($@) {
-    my $answer = shift @_;
-    map { $ENV{$_}=1; } @_;
-    run_make_with_options($makefile,"",&get_logfile,0);
-    &compare_output($answer,&get_logfile(1));
-    map { delete $ENV{$_}; } @_;
-}
+# TEST 0: basics
 
-# TEST  1: basic functioning
+&run_make_with_options($makefile,"",&get_logfile,0);
 
 $answer = "FOO=foo BAR=bar BAZ=baz BOZ=boz BITZ=bitz BOTZ=botz
 FOO= BAR= BAZ=baz BOZ=boz BITZ=bitz BOTZ=\n";
-run_test_compare($answer, ());
 
-# TEST  2: make sure variables inherited from the parent are exported
+&compare_output($answer,&get_logfile(1));
+
+# TEST 1: make sure vars inherited from the parent are exported
+
+$extraENV{FOO} = 1;
+
+&run_make_with_options($makefile,"",&get_logfile,0);
 
 $answer = "FOO=foo BAR=bar BAZ=baz BOZ=boz BITZ=bitz BOTZ=botz
 FOO=foo BAR= BAZ=baz BOZ=boz BITZ=bitz BOTZ=\n";
 
-run_test_compare($answer, ('FOO'));
+&compare_output($answer,&get_logfile(1));
 
-# TEST  3: global export.  Explicit unexport takes precedence.
+# TEST 2: global export.  Explicit unexport takes precedence.
+
+&run_make_with_options($makefile,"EXPORT_ALL=1",&get_logfile,0);
 
 $answer = "FOO=foo BAR=bar BAZ=baz BOZ=boz BITZ=bitz BOTZ=botz
 FOO=foo BAR=bar BAZ=baz BOZ=boz BITZ=bitz BOTZ=\n";
 
-run_test_compare($answer, ('EXPORT_ALL'));
+&compare_output($answer,&get_logfile(1));
 
-# Cygwin (at least seems) to have trouble *removing* environment
-# variables.
-if ($osname !~ /^CYGWIN/) {
-    # TEST  4: global unexport.  Explicit export takes precedence.
+# TEST 3: global unexport.  Explicit export takes precedence.
 
-    $answer = "FOO=foo BAR=bar BAZ=baz BOZ=boz BITZ=bitz BOTZ=botz
+&run_make_with_options($makefile,"UNEXPORT_ALL=1",&get_logfile,0);
+
+$answer = "FOO=foo BAR=bar BAZ=baz BOZ=boz BITZ=bitz BOTZ=botz
 FOO= BAR= BAZ=baz BOZ=boz BITZ=bitz BOTZ=\n";
-    run_test_compare($answer, ('UNEXPORT_ALL'));
 
-    # TEST 5: both: in the above makefile the unexport comes last so
-    # that rules.
+&compare_output($answer,&get_logfile(1));
 
-    $answer = "FOO=foo BAR=bar BAZ=baz BOZ=boz BITZ=bitz BOTZ=botz
+# TEST 4: both: in the above makefile the unexport comes last so that rules.
+
+&run_make_with_options($makefile,"EXPORT_ALL=1 UNEXPORT_ALL=1",&get_logfile,0);
+
+$answer = "FOO=foo BAR=bar BAZ=baz BOZ=boz BITZ=bitz BOTZ=botz
 FOO= BAR= BAZ=baz BOZ=boz BITZ=bitz BOTZ=\n";
-    run_test_compare($answer, ('EXPORT_ALL', 'UNEXPORT_ALL'));
-}
 
-# TEST  6: pseudo target.
+&compare_output($answer,&get_logfile(1));
+
+# TEST 5: test the pseudo target.
 
 &run_make_with_options($makefile,"EXPORT_ALL_PSEUDO=1",&get_logfile,0);
 
 $answer = "FOO=foo BAR=bar BAZ=baz BOZ=boz BITZ=bitz BOTZ=botz
 FOO=foo BAR=bar BAZ=baz BOZ=boz BITZ=bitz BOTZ=\n";
-run_test_compare($answer, ('EXPORT_ALL_PSEUDO'));
 
-# TEST  7: expansion of variables inside export
+&compare_output($answer,&get_logfile(1));
+
+
+# TEST 6: Test the expansion of variables inside export
 
 $makefile2 = &get_tmpfile;
 
@@ -146,7 +135,7 @@ $answer = "foo=f-ok bar=b-ok\nfoo=f-ok bar=b-ok\n";
 &compare_output($answer,&get_logfile(1));
 
 
-# TEST  8: expansion of variables inside unexport
+# TEST 7: Test the expansion of variables inside unexport
 
 $makefile3 = &get_tmpfile;
 
@@ -181,7 +170,7 @@ $answer = "foo=f-ok bar=b-ok\nfoo= bar=\n";
 &compare_output($answer,&get_logfile(1));
 
 
-# TEST  9: exporting multiple variables on the same line
+# TEST 7: Test exporting multiple variables on the same line
 
 $makefile4 = &get_tmpfile;
 
@@ -216,7 +205,7 @@ $answer = "A=a B=b C=c D=d E=e F=f G=g H=h I=i J=j\n";
 &compare_output($answer,&get_logfile(1));
 
 
-# TEST 10: unexporting multiple variables on the same line
+# TEST 8: Test unexporting multiple variables on the same line
 
 $makefile5 = &get_tmpfile;
 
@@ -246,13 +235,11 @@ EOF
 
 close(MAKEFILE);
 
-@ENV{qw(A B C D E F G H I J)} = qw(1 2 3 4 5 6 7 8 9 10);
+@extraENV{qw(A B C D E F G H I J)} = qw(1 2 3 4 5 6 7 8 9 10);
 
 &run_make_with_options($makefile5,"",&get_logfile,0);
 $answer = "A= B= C= D= E= F= G= H= I= J=\n";
 &compare_output($answer,&get_logfile(1));
-
-delete @ENV{qw(A B C D E F G H I J)};
 
 
 # This tells the test driver that the perl test script executed properly.

@@ -1,3 +1,5 @@
+#								     -*-perl-*-
+
 $description = "The following test creates a makefile to test MAKE \n"
               ."(very generic)";
 
