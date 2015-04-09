@@ -18,6 +18,11 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
    These flags are saved in the 'changed' field of each
    'struct dep' in the chain returned by 'read_all_makefiles'.  */
 
+#ifndef REMAKE_DEP_H
+#define REMAKE_DEP_H
+
+#include "gnumake.h"
+
 #define RM_NO_DEFAULT_GOAL      (1 << 0) /* Do not set default goal.  */
 #define RM_INCLUDED             (1 << 1) /* Search makefile search path.  */
 #define RM_DONTCARE             (1 << 2) /* No error if it doesn't exist.  */
@@ -72,7 +77,7 @@ void *parse_file_seq (char **stringp, unsigned int size,
                       int stopmap, const char *prefix, int flags);
 #endif
 
-char *tilde_expand (const char *name);
+char *remake_tilde_expand (const char *name);
 
 #ifndef NO_ARCHIVES
 struct nameseq *ar_glob (const char *arname, const char *member_pattern, unsigned int size);
@@ -88,5 +93,11 @@ struct dep *copy_dep_chain (const struct dep *d);
 void free_dep_chain (struct dep *d);
 void free_ns_chain (struct nameseq *n);
 struct dep *read_all_makefiles (const char **makefiles);
+
+/*! The chain of makefiles read by read_makefile.  */
+struct dep *read_makefiles;
+
 void eval_buffer (char *buffer, const gmk_floc *floc);
 enum update_status update_goal_chain (struct dep *goals);
+
+#endif /*REMAKE_DEP_H*/

@@ -19,13 +19,23 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
    that the makefile says how to make.
    All of these are chained together through 'next'.  */
 
+#ifndef _REMAKE_FILEDEF_H
+#define _REMAKE_FILEDEF_H
+
 #include "hash.h"
+#include "gnumake.h"
+#include "types.h"
 
 struct file
   {
     const char *name;
     const char *hname;          /* Hashed filename */
     const char *vpath;          /* VPATH/vpath pathname */
+    gmk_floc floc;              /* location in Makefile - for tracing */
+    unsigned int nlines;	/* Number of lines in file - for debugging. */
+
+    const char *description;    /* Description of target taken from comment.
+				   Part after #:  */
     struct dep *deps;           /* all dependencies, including duplicates */
     struct commands *cmds;      /* Commands to execute for this target.  */
     const char *stem;           /* Implicit stem, if an implicit
@@ -73,6 +83,8 @@ struct file
         cs_running,             /* Commands running.  */
         cs_finished             /* Commands finished.  */
       } command_state ENUM_BITFIELD (2);
+
+    breakpoint_mask_t tracing;  /* breakpoint status of target. */
 
     unsigned int builtin:1;     /* True if the file is a builtin rule. */
     unsigned int precious:1;    /* Non-0 means don't delete file on quit */
@@ -160,8 +172,20 @@ void print_file_data_base (void);
     * 302 / 1000) \
    + 1 + 1 + 4 + 25)
 
-FILE_TIMESTAMP file_timestamp_cons (char const *, time_t, long int);
-FILE_TIMESTAMP file_timestamp_now (int *);
+/** Convert an external file timestamp to internal form.  */
+extern FILE_TIMESTAMP file_timestamp_cons (char const *, time_t, long int);
+
+/** Return the current time as a file timestamp, setting *RESOLUTION to
+   its resolution.  */
+extern FILE_TIMESTAMP file_timestamp_now (int *);
+
+/**
+    Place into the buffer P a printable representation of the file
+    timestamp TS.
+
+    @param p output buffer for printable timestamp
+    @param ts timestamp to convert.
+ */
 void file_timestamp_sprintf (char *p, FILE_TIMESTAMP ts);
 
 /* Return the mtime of file F (a struct file *), caching it.
@@ -207,3 +231,5 @@ FILE_TIMESTAMP f_mtime (struct file *file, int search);
 
 /* Have we snapped deps yet?  */
 extern int snapped_deps;
+
+#endif /*FILEDEF_H*/

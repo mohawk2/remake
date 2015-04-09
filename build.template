@@ -1,8 +1,9 @@
 #!/bin/sh
-# Shell script to build GNU Make in the absence of any 'make' program.
+# Shell script to build GNU Make in the absence of any `make' program.
 # @configure_input@
 
-# Copyright (C) 1993-2014 Free Software Foundation, Inc.
+# Copyright (C) 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002,
+# 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
 # This file is part of GNU Make.
 #
 # GNU Make is free software; you can redistribute it and/or modify it under
@@ -22,11 +23,11 @@
 
 srcdir='@srcdir@'
 CC='@CC@'
-CFLAGS='@CFLAGS@ @GUILE_CFLAGS@'
+CFLAGS='@CFLAGS@'
 CPPFLAGS='@CPPFLAGS@'
-LDFLAGS='@AM_LDFLAGS@ @LDFLAGS@'
+LDFLAGS='@LDFLAGS@'
 ALLOCA='@ALLOCA@'
-LOADLIBES='@LIBS@ @GUILE_LIBS@ @LIBINTL@'
+LOADLIBES='@LIBS@ @LIBINTL@'
 eval extras=\'@LIBOBJS@\'
 REMOTE='@REMOTE@'
 GLOBLIB='@GLOBLIB@'
@@ -38,7 +39,7 @@ EXEEXT='@EXEEXT@'
 prefix='@prefix@'
 # Common prefix for machine-dependent installed files.
 exec_prefix=`eval echo @exec_prefix@`
-# Directory to find libraries in for '-lXXX'.
+# Directory to find libraries in for `-lXXX'.
 libdir=${exec_prefix}/lib
 # Directory to search by default for included makefiles.
 includedir=${prefix}/include
@@ -46,7 +47,7 @@ includedir=${prefix}/include
 localedir=${prefix}/share/locale
 aliaspath=${localedir}${PATH_SEPARATOR}.
 
-defines="-DLOCALEDIR=\"${localedir}\" -DLIBDIR=\"${libdir}\" -DINCLUDEDIR=\"${includedir}\""' @DEFS@'
+defines="-DALIASPATH=\"${aliaspath}\" -DLOCALEDIR=\"${localedir}\" -DLIBDIR=\"${libdir}\" -DINCLUDEDIR=\"${includedir}\""' @DEFS@'
 
 # Exit as soon as any command fails.
 set -e

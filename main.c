@@ -55,7 +55,7 @@ RETSIGTYPE fatal_error_signal (int sig);
 
 void print_variable_data_base (void);
 void print_dir_data_base (void);
-void print_rule_data_base (void);
+void print_rule_data_base (bool b_verbose);
 void print_vpath_data_base (void);
 
 void verify_file_data_base (void);
@@ -121,14 +121,6 @@ struct command_switch
 /* The structure used to hold the list of strings given
    in command switches of a type that takes strlist arguments.  */
 
-struct stringlist
-  {
-    const char **list;  /* Nil-terminated list of strings.  */
-    unsigned int idx;   /* Index into above.  */
-    unsigned int max;   /* Number of pointers allocated.  */
-  };
-
-
 /* The recognized command switches.  */
 
 /* Nonzero means do extra verification (that may slow things down).  */
@@ -149,16 +141,63 @@ int touch_flag;
 
 int just_print_flag;
 
-/* Print debugging info (--debug).  */
-
-static struct stringlist *db_flags = 0;
-static int debug_flag = 0;
-
-int db_level = 0;
-
 /* Synchronize output (--output-sync).  */
 
 char *output_sync_option = 0;
+
+/*! If 1, we don't give additional error reporting information. */
+int no_extended_errors = 0;
+
+/*! If true, show version information on entry. */
+bool b_show_version = false;
+
+/*! If non-null, contains the type of tracing we are to do.
+  This is coordinated with tracing_flag. */
+stringlist_t *tracing_opts = NULL;
+
+/*! Nonzero means use GNU readline in the debugger. */
+
+int use_readline_flag =
+#ifdef HAVE_READLINE_READLINE_H
+    1
+#else
+    0
+#endif
+    ;
+
+/*! If nonzero, we are debugging after each "step" for that many times.
+  When we have a value 1, then we actually run the debugger read loop.
+  Otherwise we decrement the step count.
+
+*/
+unsigned int i_debugger_stepping = 0;
+
+/*! If nonzero, we are debugging after each "next" for that many times.
+  When we have a value 1, then we actually run the debugger read loop.
+  Otherwise we decrement the step count.
+
+*/
+unsigned int i_debugger_nexting = 0;
+
+/*! If nonzero, enter the debugger if we hit a fatal error.
+*/
+unsigned int debugger_on_error = 0;
+
+/*! If nonzero, we have requested some sort of debugging.
+*/
+unsigned int debugger_enabled;
+
+/*! If nonzero, the basename of filenames is in giving locations. Normally,
+    giving a file directory location helps a debugger frontend
+    when we change directories. For regression tests it is helpful to
+    list just the basename part as that doesn't change from installation
+    to installation. Users may have their preferences too.
+*/
+int basename_filenames = 0;
+
+/* Output level (--verbosity).  */
+
+static struct stringlist *verbosity_opts;
 
 #ifdef WINDOWS32
 /* Suspend make in main for a short time to allow debugger to attach */
@@ -211,6 +250,28 @@ int inhibit_print_directory_flag = 0;
 /* Nonzero means print version information.  */
 
 int print_version_flag = 0;
+
+/*! Nonzero means --trace and shell trace with input.  */
+
+int shell_trace = 0;
+
+/*! Nonzero gives a list of explicit target names and exits. Set by option
+  --targets
+ */
+
+int show_targets_flag = 0;
+
+/*! Nonzero gives a list of explicit target names that have commands
+  associated with them and exits. Set by option --tasks
+ */
+
+int show_tasks_flag = 0;
+
+/*! Nonzero gives a list of explicit target names that have commands
+   AND comments associated with them and exits. Set by option --task-comments
+ */
+
+int show_task_comments_flag = 0;
 
 /* List of makefiles given with -f switches.  */
 
@@ -280,6 +341,20 @@ static struct stringlist *eval_strings = 0;
 
 static int print_usage_flag = 0;
 
+/*! Do we want to go into a debugger or not?
+  Values are "error"     - enter on errors or fatal errors
+              "fatal"     - enter on fatal errors
+              "goal"      - set to enter debugger before updating goal
+              "preread"   - set to enter debugger before reading makefile(s)
+              "preaction" - set to enter debugger before performing any
+                            actions(s)
+              "full"     - "enter" + "error" + "fatal"
+*/
+static stringlist_t* debugger_opts = NULL;
+
+/*! If 1, same as --debugger=preaction */
+int debugger_flag;
+
 /* If nonzero, we should print a warning message
    for each reference to an undefined variable.  */
 
@@ -347,6 +422,8 @@ static const char *const usage[] =
     N_("\
   -L, --check-symlink-times   Use the latest mtime between symlinks and target.\n"),
     N_("\
+  --no-extended-errors         Do not give additional error reporting.\n"),
+    N_("\
   -n, --just-print, --dry-run, --recon\n\
                               Don't actually run any recipe; just print them.\n"),
     N_("\
@@ -369,11 +446,19 @@ static const char *const usage[] =
   -S, --no-keep-going, --stop\n\
                               Turns off -k.\n"),
     N_("\
+  --targets                   Give list of explicitly-named targets.\n"),
+    N_("\
+  --tasks                     Give list of explicitly-named targets which\n"
+"                             have commands associated with them.\n"),
+    N_("\
   -t, --touch                 Touch targets instead of remaking them.\n"),
     N_("\
   --trace                     Print tracing information.\n"),
     N_("\
   -v, --version               Print the version number of make and exit.\n"),
+    N_("\
+  --verbosity[=LEVEL]         Set verbosity level. LEVEL may be \"terse\" \"no-header\" or\n"
+                              "\full\"\n. The default is \"full\".\n"),
     N_("\
   -w, --print-directory       Print the current directory.\n"),
     N_("\
@@ -383,6 +468,18 @@ static const char *const usage[] =
                               Consider FILE to be infinitely new.\n"),
     N_("\
   --warn-undefined-variables  Warn when an undefined variable is referenced.\n"),
+    N_("\
+  -x --trace[=TYPE]           Trace command execution TYPE may be\n\
+                              \"command\", \"read\", \"normal\",\"\n\
+                              \"noshell\", or \"full\". Default is \"normal\"\n"),
+    N_("\
+  --debugger[=TYPE]            Enter debugger. TYPE may be\n\
+                               \"goal\", \"preread\", \"preaction\",\n\
+                               \"full\", \"error\", or \"fatal\".\n"),
+    N_("\n\
+  -X                           Same as \"--debugger=preaction\"\n"),
+    N_("\
+   --no-readline               Do not use GNU ReadLine in debugger.\n"),
     NULL
   };
 
@@ -417,6 +514,9 @@ static const struct command_switch switches[] =
     { 't', flag, &touch_flag, 1, 1, 1, 0, 0, "touch" },
     { 'v', flag, &print_version_flag, 1, 1, 0, 0, 0, "version" },
     { 'w', flag, &print_directory_flag, 1, 1, 0, 0, 0, "print-directory" },
+    { 'x', strlist, &tracing_opts,  1, 1, 0, "normal",    0, "trace" },
+    { 'X', strlist, &debugger_opts, 1, 1, 0, "preaction", 0, "debugger" },
+    { 'X', flag, &debugger_flag, 1, 1, 0, 0, 0, 0 },
 
     /* These options take arguments.  */
     { 'C', filename, &directories, 0, 0, 0, 0, 0, "directory" },
@@ -439,13 +539,22 @@ static const struct command_switch switches[] =
     /* These are long-style options.  */
     { CHAR_MAX+1, strlist, &db_flags, 1, 1, 0, "basic", 0, "debug" },
     { CHAR_MAX+2, string, &jobserver_fds, 1, 1, 0, 0, 0, "jobserver-fds" },
-    { CHAR_MAX+3, flag, &trace_flag, 1, 1, 0, 0, 0, "trace" },
+    { CHAR_MAX+3,  flag, &show_tasks_flag, 0, 0, 0, 0, 0,
+      "tasks" },
     { CHAR_MAX+4, flag, &inhibit_print_directory_flag, 1, 1, 0, 0, 0,
       "no-print-directory" },
     { CHAR_MAX+5, flag, &warn_undefined_variables_flag, 1, 1, 0, 0, 0,
       "warn-undefined-variables" },
     { CHAR_MAX+6, strlist, &eval_strings, 1, 0, 0, 0, 0, "eval" },
     { CHAR_MAX+7, string, &sync_mutex, 1, 1, 0, 0, 0, "sync-mutex" },
+    { CHAR_MAX+8, strlist, &verbosity_opts, 1, 1, 0, 0, 0,
+      "verbosity" },
+    { CHAR_MAX+9, flag, (char *) &no_extended_errors, 1, 1, 0, 0, 0,
+        "no-extended-errors", },
+    { CHAR_MAX+10, flag_off, (char *) &use_readline_flag, 1, 0, 0, 0, 0,
+        "no-readline", },
+    { CHAR_MAX+11, flag,  &show_targets_flag, 0, 0, 0, 0, 0,
+      "targets" },
     { 0, 0, 0, 0, 0, 0, 0, 0, 0 }
   };
 
@@ -477,46 +586,48 @@ struct command_variable
     struct variable *variable;
   };
 static struct command_variable *command_variables;
+
+/*! Value of argv[0] which seems to get modified. Can we merge this with
+    program below? */
+char *argv0 = NULL;
+
 
-/* The name we were invoked with.  */
+/*! The name we were invoked with.  */
 
 #ifdef WINDOWS32
 /* On MS-Windows, we chop off the .exe suffix in 'main', so this
    cannot be 'const'.  */
-char *program;
+char *program = NULL;
 #else
-const char *program;
+const char *program = NULL;
 #endif
 
-/* Our current directory before processing any -C options.  */
+/*! Our initial arguments -- used for debugger restart execvp.  */
+char **global_argv;
 
-char *directory_before_chdir;
+/*! Our current directory before processing any -C options.  */
+char *directory_before_chdir = NULL;
 
-/* Our current directory after processing all -C options.  */
-
+/*! Our current directory after processing all -C options.  */
 char *starting_directory;
 
-/* Value of the MAKELEVEL variable at startup (or 0).  */
-
+/*! Value of the MAKELEVEL variable at startup (or 0).  */
 unsigned int makelevel;
 
-/* Pointer to the value of the .DEFAULT_GOAL special variable.
-   The value will be the name of the goal to remake if the command line
-   does not override it.  It can be set by the makefile, or else it's
-   the first target defined in the makefile whose name does not start
-   with '.'.  */
-
+/*! Pointer to the value of the .DEFAULT_GOAL special variable.
+  The value will be the name of the goal to remake if the command line
+  does not override it.  It can be set by the makefile, or else it's
+  the first target defined in the makefile whose name does not start
+  with '.'.  */
 struct variable * default_goal_var;
 
-/* Pointer to structure for the file .DEFAULT
+/*! Pointer to structure for the file .DEFAULT
    whose commands are used for any file that has none of its own.
    This is zero if the makefiles do not define .DEFAULT.  */
-
 struct file *default_file;
 
-/* Nonzero if we have seen the magic '.POSIX' target.
+/*! Nonzero if we have seen the magic '.POSIX' target.
    This turns on pedantic compliance with POSIX.2.  */
-
 int posix_pedantic;
 
 /* Nonzero if we have seen the '.SECONDEXPANSION' target.
@@ -535,10 +646,6 @@ int one_shell;
    of each job stay together.  */
 
 int output_sync = OUTPUT_SYNC_NONE;
-
-/* Nonzero if the "--trace" option was given.  */
-
-int trace_flag = 0;
 
 /* Nonzero if we have seen the '.NOTPARALLEL' target.
    This turns off parallel builds for this invocation of make.  */
@@ -593,6 +700,50 @@ bsd_signal (int sig, bsd_signal_ret_t func)
 }
 # endif
 #endif
+
+void
+decode_trace_flags (stringlist_t *ppsz_tracing_opts)
+{
+  if (ppsz_tracing_opts) {
+    const char **p;
+    db_level |= (DB_TRACE | DB_SHELL);
+    if (!ppsz_tracing_opts->list)
+      db_level |= (DB_BASIC);
+    else
+      for (p = ppsz_tracing_opts->list; *p != 0; ++p) {
+        if (0 == strcmp(*p, "command"))
+          ;
+        else if (0 == strcmp(*p, "full"))
+          db_level |= (DB_VERBOSE|DB_READ_MAKEFILES);
+        else if (0 == strcmp(*p, "normal"))
+          db_level |= DB_BASIC;
+        else if (0 == strcmp(*p, "noshell"))
+          db_level = DB_BASIC | DB_TRACE;
+        else if (0 == strcmp(*p, "read"))
+          db_level |= DB_READ_MAKEFILES;
+      }
+  }
+}
+
+void
+decode_verbosity_flags (stringlist_t *ppsz_verbosity_opts)
+{
+  if (ppsz_verbosity_opts) {
+    const char **p;
+    if (ppsz_verbosity_opts->list)
+      for (p = ppsz_verbosity_opts->list; *p != 0; ++p) {
+        if (0 == strcmp(*p, "no-header"))
+          b_show_version = false;
+        else if (0 == strcmp(*p, "full")) {
+          db_level |= (DB_VERBOSE);
+	  b_show_version = true;
+	} else if (0 == strcmp(*p, "terse")) {
+	  db_level &= (~DB_VERBOSE);
+	  b_show_version = false;
+	}
+      }
+  }
+}
 
 static void
 initialize_global_hash_tables (void)
@@ -655,7 +806,7 @@ expand_command_line_file (const char *name)
 
   if (name[0] == '~')
     {
-      expanded = tilde_expand (name);
+      expanded = remake_tilde_expand (name);
       if (expanded && expanded[0] != '\0')
         name = expanded;
     }
@@ -1027,7 +1178,6 @@ main (int argc, char **argv, char **envp)
 {
   static char *stdin_nm = 0;
   int makefile_status = MAKE_SUCCESS;
-  struct dep *read_files;
   PATH_VAR (current_directory);
   unsigned int restarts = 0;
   unsigned int syncing = 0;
@@ -1042,6 +1192,7 @@ main (int argc, char **argv, char **envp)
   no_default_sh_exe = 1;
 #endif
 
+  argv0 = strdup(argv[0]);
   output_init (&make_sync);
 
   initialize_stopchar_map();
@@ -1397,7 +1548,7 @@ main (int argc, char **argv, char **envp)
 
   decode_switches (argc, (const char **)argv, 0);
 
-    /* Set a variable specifying whether stdout/stdin is hooked to a TTY.  */
+  /* Set a variable specifying whether stdout/stdin is hooked to a TTY.  */
 #ifdef HAVE_ISATTY
     if (isatty (fileno (stdout)))
       if (! lookup_variable (STRING_SIZE_TUPLE ("MAKE_TERMOUT")))
@@ -1439,6 +1590,66 @@ main (int argc, char **argv, char **envp)
     }
 #endif
 
+  decode_trace_flags (tracing_opts);
+  decode_verbosity_flags (verbosity_opts);
+
+  /* FIXME: put into a subroutine like decode_trace_flags */
+  if (debugger_flag) {
+    b_debugger_preread   = false;
+    job_slots            =  1;
+    i_debugger_stepping  =  1;
+    i_debugger_nexting   =  0;
+    debugger_enabled     =  1;
+    /* For now we'll do basic debugging. Later, "stepping'
+       will stop here while next won't - either way no printing.
+    */
+    db_level            |=  DB_BASIC | DB_CALL | DB_SHELL | DB_UPDATE_GOAL
+        | DB_MAKEFILES;
+  } else {
+    /* debugging sets some things */
+    if (debugger_opts) {
+      const char **p;
+      b_show_version = true;
+      for (p = debugger_opts->list; *p != 0; ++p)
+        {
+          if (0 == strcmp(*p, "preread")) {
+            b_debugger_preread  = true;
+            db_level           |= DB_READ_MAKEFILES;
+          }
+
+          if (0 == strcmp(*p, "goal")) {
+            b_debugger_goal  = true;
+            db_level           |= DB_UPDATE_GOAL;
+          }
+
+          if ( 0 == strcmp(*p, "full") || b_debugger_preread
+               || 0 == strcmp(*p, "preaction") ) {
+            job_slots            =  1;
+            i_debugger_stepping  =  1;
+            i_debugger_nexting   =  0;
+            debugger_enabled     =  1;
+            /* For now we'll do basic debugging. Later, "stepping'
+               will stop here while next won't - either way no printing.
+             */
+            db_level          |=  DB_BASIC | DB_CALL | DB_SHELL | DB_UPDATE_GOAL
+                              |   DB_MAKEFILES;
+          }
+          if ( 0 == strcmp(*p, "full")
+               || 0 == strcmp(*p, "error") ) {
+            debugger_on_error  |=  (DEBUGGER_ON_ERROR|DEBUGGER_ON_FATAL);
+          } else if ( 0 == strcmp(*p, "fatal") ) {
+            debugger_on_error  |=  DEBUGGER_ON_FATAL;
+          }
+        }
+#ifndef HAVE_LIBREADLINE
+      error (NILF,
+             "warning: you specified a debugger option, but you don't have readline support");
+      error (NILF,
+             "debugger support compiled in. Debugger options will be ignored.");
+#endif
+    }
+  }
+
   /* Set always_make_flag if -B was given and we've not restarted already.  */
   always_make_flag = always_make_set && (restarts == 0);
 
@@ -1449,7 +1660,7 @@ main (int argc, char **argv, char **envp)
       die (MAKE_SUCCESS);
     }
 
-  if (ISDB (DB_BASIC))
+  if (ISDB (DB_BASIC) && makelevel == 0 && b_show_version)
     print_version ();
 
 #ifndef VMS
@@ -1892,7 +2103,7 @@ main (int argc, char **argv, char **envp)
 
   /* Read all the makefiles.  */
 
-  read_files = read_all_makefiles (makefiles == 0 ? 0 : makefiles->list);
+  read_makefiles = read_all_makefiles (makefiles == 0 ? 0 : makefiles->list);
 
 #ifdef WINDOWS32
   /* look one last time after reading all Makefiles */
@@ -2115,7 +2326,7 @@ main (int argc, char **argv, char **envp)
   OUTPUT_UNSET ();
   output_close (&make_sync);
 
-  if (read_files != 0)
+  if (read_makefiles != 0)
     {
       /* Update any makefiles if necessary.  */
 
@@ -2137,7 +2348,7 @@ main (int argc, char **argv, char **envp)
       {
         register struct dep *d, *last;
         last = 0;
-        d = read_files;
+        d = read_makefiles;
         while (d != 0)
           {
             struct file *f = d->file;
@@ -2159,14 +2370,14 @@ main (int argc, char **argv, char **envp)
                            f->name));
 
                       if (last == 0)
-                        read_files = d->next;
+                        read_makefiles = d->next;
                       else
                         last->next = d->next;
 
                       /* Free the storage.  */
                       free_dep (d);
 
-                      d = last == 0 ? read_files : last->next;
+                      d = last == 0 ? read_makefiles : last->next;
 
                       break;
                     }
@@ -2187,7 +2398,7 @@ main (int argc, char **argv, char **envp)
       define_makeflags (1, 1);
 
       rebuilding_makefiles = 1;
-      status = update_goal_chain (read_files);
+      status = update_goal_chain (read_makefiles);
       rebuilding_makefiles = 0;
 
       switch (status)
@@ -2214,7 +2425,7 @@ main (int argc, char **argv, char **envp)
             unsigned int i;
             struct dep *d;
 
-            for (i = 0, d = read_files; d != 0; ++i, d = d->next)
+            for (i = 0, d = read_makefiles; d != 0; ++i, d = d->next)
               {
                 /* Reset the considered flag; we may need to look at the file
                    again to print an error.  */
@@ -2265,7 +2476,7 @@ main (int argc, char **argv, char **envp)
                     }
               }
             /* Reset this to empty so we get the right error message below.  */
-            read_files = 0;
+            read_makefiles = 0;
 
             if (any_remade)
               goto re_exec;
@@ -2505,11 +2716,21 @@ main (int argc, char **argv, char **envp)
 
   if (!goals)
     {
-      if (read_files == 0)
+      if (read_makefiles == 0)
         O (fatal, NILF, _("No targets specified and no makefile found"));
 
       O (fatal, NILF, _("No targets"));
     }
+
+  if (show_tasks_flag || show_task_comments_flag) {
+      dbg_cmd_info_targets(show_task_comments_flag
+                           ? INFO_TARGET_TASKS_WITH_COMMENTS
+                           : INFO_TARGET_TASKS);
+      die(0);
+  } else if (show_targets_flag) {
+      dbg_cmd_info_targets(INFO_TARGET_NAME);
+      die(0);
+  }
 
   /* Update the goals.  */
 
@@ -2718,7 +2939,7 @@ print_usage (int bad)
     fprintf (usageto, _("\nThis program built for %s (%s)\n"),
              make_host, remote_description);
 
-  fprintf (usageto, _("Report bugs to <bug-make@gnu.org>\n"));
+  fprintf (usageto, _("Report bugs to https://github.com/rocky/remake/issues\n"));
 }
 
 /* Decode switches from ARGC and ARGV.
@@ -3276,7 +3497,8 @@ print_version (void)
      year, and none of the rest of it should be translated (including the
      word "Copyright"), so it hardly seems worth it.  */
 
-  printf ("%sCopyright (C) 1988-2014 Free Software Foundation, Inc.\n",
+  printf ("%sCopyright (C) 1988-2014 Free Software Foundation, Inc.\n"
+	  "Copyright (C) 2015 Rocky Bernstein.\n",
           precede);
 
   printf (_("%sLicense GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>\n\
@@ -3304,7 +3526,7 @@ print_data_base ()
 
   print_variable_data_base ();
   print_dir_data_base ();
-  print_rule_data_base ();
+  print_rule_data_base (true);
   print_file_data_base ();
   print_vpath_data_base ();
   strcache_print_stats ("#");
@@ -3408,7 +3630,7 @@ die (int status)
       /* Wait for children to die.  */
       err = (status != 0);
       while (job_slots_used > 0)
-        reap_children (1, err);
+        reap_children (1, err, NULL);
 
       /* Let the remote job module clean up its state.  */
       remote_cleanup ();
